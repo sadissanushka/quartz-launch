@@ -1,6 +1,6 @@
 # Stack Kings · Relic Ring Protocol · Demo Script
 
-**15 minutes. F12 open. `npm run dev` running.**
+**17 minutes. F12 open. `npm run dev` running.**
 
 ```
 0:00  Block 1 — Architecture                 2 min
@@ -8,7 +8,8 @@
 5:00  Block 3 — Routing + codec pipeline     4 min
 9:00  Block 4 — Chaos / rerouting            3 min
 12:00 Block 5 — Chimera Co-Pilot             2 min
-14:00 Block 6 — Q&A
+14:00 Block 6 — Web UI walkthrough           3 min
+17:00 Block 7 — Q&A
 ```
 
 ---
@@ -270,6 +271,87 @@ Open `src/lib/chimera/link-evaluation.ts`, show `detectLinkAnomaly()`:
 
 ---
 
+# Block 6 — Web UI Walkthrough `14:00`
+
+Navigate to `http://localhost:3000` (or `http://localhost:3000/relic`).
+
+> "Everything you just ran in the console is wired up in the dashboard. Let me show you the same data paths through the UI."
+
+---
+
+## 6.1 — Space Map
+
+Point at the **SpaceMap** canvas:
+
+> "This is the live universe graph — every planet and every edge that passed the Lmax constraint. Colour intensity represents void distance. The highlighted path is the last route we computed."
+
+Click a planet node:
+
+> "Click any node — you see its codex base, active tower count, and radius. These are the exact `PlanetNode` fields from `types.ts`."
+
+---
+
+## 6.2 — Codex Terminal
+
+Open the **Codex Terminal** panel. Type `Aegis`, `Caelum`, `Hello world` into the three fields and hit **Transmit**:
+
+> "Same as our DevTools demo but rendered step-by-step. Each row is one hop. Base-8 leaving Aegis, base-6 at Dawn, back to ASCII at Caelum. The green checkmark is our integrity proof — `delivered_payload` matched the original."
+
+---
+
+## 6.3 — Latency Metrics
+
+Point at the **LatencyMetrics** bar chart:
+
+> "The breakdown — `fiber_ms`, `tower_ms`, `atmosphere_ms`, `void_ms` — rendered as stacked bars. Void dominates at 229 seconds. Everything else is sub-millisecond noise."
+
+---
+
+## 6.4 — Chaos Mode in the UI
+
+Toggle **Block Dawn** in the UI controls (or equivalent node failure toggle):
+
+> "This is the same `blockedNodes: ['Dawn']` flag the API accepts — the UI just wraps it. Watch the path on the SpaceMap redraw to Aegis → Elysium → Caelum."
+
+Point at the latency delta:
+
+> "+51 seconds on the map — same numbers we saw in the console. No state to flush. Every render is a fresh Dijkstra run."
+
+---
+
+## 6.5 — Link Evaluations Panel (Chimera)
+
+Open the **LinkEvaluationsPanel**:
+
+> "This calls `POST /api/route` with the structured payload — the True Cost Router path. Each row is a link. Congestion penalty, trust score, targeting risk, and combined cost side-by-side."
+
+Hover over the trust score column:
+
+> "Trust score below 0.5 means the link's self-reported latency is faster than physics allows — that's the spoofing detection in `trust.ts`."
+
+---
+
+## 6.6 — Co-Pilot Natural Language (Chimera)
+
+Paste in DevTools (or use the Co-Pilot input if visible in the UI):
+
+```javascript
+const copilot = await fetch('/api/route', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    request: 'send a message from Aegis to Caelum avoiding congested links'
+  })
+}).then(r => r.json());
+console.log('parse_source:', copilot.parse_source);
+console.log('path:', copilot.path?.join(' → '));
+console.log('explanation:', copilot.explanation);
+```
+
+> "The `explanation` field populates the Intelligence Summary panel — prose from the Co-Pilot agent describing *why* it chose this path. `parse_source: "regex"` means it matched the pattern without hitting the LLM. Change the request to something more ambiguous and you'll see it flip to `"llm"`."
+
+---
+
 # Reference — Where Things Live
 
 ```
@@ -310,7 +392,7 @@ src/lib/
 
 ---
 
-# Q&A Pocket Answers
+# Block 7 — Q&A Pocket Answers
 
 **What is `codex`?**
 Each planet speaks a different number base. Every ASCII byte is encoded into that base before crossing the void. `encodeToCodex()` in `codec.ts` — `byte.toString(base).toUpperCase()`.
