@@ -1,34 +1,10 @@
-# Stack Kings · Relic Ring Protocol — Demo Script
-
-**Runtime:** 17 min · **Setup:** `npm run dev` running, browser DevTools (F12) open  
-**Companion reference:** full per-file code review vault at `launch-help.wssat.me`
-
----
-
-## What This Demo Is Showing
-
-The project has two layers, and the whole script walks through them in order:
-
-| Phase | Name | What it is |
-|---|---|---|
-| **Phase 1** | **Relic** | Pure physics — Dijkstra shortest-path routing over a solar-system graph, with real latency math (void travel + internal planet transit) and a base-N encoding "codec" applied to every packet at every hop. |
+| Phase       | Name        | What it is                                                                                                                                                                                                                                |
+| ----------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Phase 1** | **Relic**   | Pure physics — Dijkstra shortest-path routing over a solar-system graph, with real latency math (void travel + internal planet transit) and a base-N encoding "codec" applied to every packet at every hop.                               |
 | **Phase 2** | **Chimera** | An AI/heuristics layer on top of Relic — adds congestion prediction, trust scoring (spoofing detection), and targeting-risk scoring to the same physics graph. Exposes both a structured router and a natural-language "Co-Pilot" router. |
 
 The demo proves this in three ways: **(1)** console/API calls showing raw numbers, **(2)** chaos tests showing the router adapts live with no stored state, **(3)** the web UI showing the same data rendered visually.
 
----
-
-## Timeline
-
-```
-0:00  Block 1 — Architecture                 2 min
-2:00  Block 2 — Universe graph               3 min
-5:00  Block 3 — Routing + codec pipeline     4 min
-9:00  Block 4 — Chaos / rerouting            3 min
-12:00 Block 5 — Chimera Co-Pilot             2 min
-14:00 Block 6 — Web UI walkthrough           3 min
-17:00 Block 7 — Q&A
-```
 
 ---
 
@@ -38,7 +14,12 @@ The demo proves this in three ways: **(1)** console/API calls showing raw number
 
 **Action:** Open `obsidian-vault/00 - Index.md`. Point at the data-flow diagram.
 
-> "Two phases. Phase 1 — Relic — is pure physics. Dijkstra over a solar-system graph with real latency math. Phase 2 — Chimera — is the AI layer: it overlays congestion, trust scoring, and targeting risk on top of that physics. The browser is our main interface."
+> "There are two phases for this project
+> Phase 1 — Relic — 
+	-pure physics. 
+	-Dijkstra algorithm decide solar-system  connection graph with real latency math.
+> Phase 2 — Chimera — 
+> 	-is the AI layer: it overlays congestion, trust scoring, and targeting risk on top of that physics. The browser is our main interface."
 
 ---
 
@@ -54,19 +35,17 @@ Then open `src/lib/relic/engine.ts` → `createEngine()`:
 
 > "This is the composition root. Geometry, codec, graph, resilient network — all wired here."
 
-**DevTools calls, in order:**
-
 **1. Health check:**
 
 ```javascript
-const health = await fetch('/api/health').then(r => r.json());
+health = await fetch('/api/health').then(r => r.json());
 console.log(health);
 ```
 
 **2. Universe table:**
 
 ```javascript
-const universe = await fetch('/api/universe').then(r => r.json());
+universe = await fetch('/api/universe').then(r => r.json());
 console.table(universe.nodes.map(n => ({
   id: n.id,
   codex: `base ${n.codex}`,
@@ -78,7 +57,7 @@ console.table(universe.nodes.map(n => ({
 **3. Reachable links (within Lmax):**
 
 ```javascript
-const reachable = universe.edges?.filter(e => e.within_lmax)
+reachable = universe.edges?.filter(e => e.within_lmax)
   ?? universe.interplanetaryLinks;
 console.table(reachable.map(e => ({
   link: `${e.from ?? e.planet_a} ↔ ${e.to ?? e.planet_b}`,
@@ -106,7 +85,7 @@ console.table(reachable.map(e => ({
 **Action 3 — run a live transmission.** `POST /api/transmit`:
 
 ```javascript
-const result = await fetch('/api/transmit', {
+result = await fetch('/api/transmit', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -174,7 +153,7 @@ result.packet.hop_log.forEach(hop => {
 **Action 2 — kill a node.** Resend with `blockedNodes: ['Dawn']`:
 
 ```javascript
-const chaos = await fetch('/api/transmit', {
+chaos = await fetch('/api/transmit', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -200,7 +179,7 @@ New latency:    280423.074 ms
 **Action 3 — cut a single link instead of a whole node.** Resend with `blockedEdges: [['Aegis', 'Dawn']]`:
 
 ```javascript
-const cutLink = await fetch('/api/transmit', {
+cutLink = await fetch('/api/transmit', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -219,7 +198,7 @@ console.log('Link-cut path:', cutLink.route.path.join(' → '));
 **Action 4 — force total isolation.** Resend with `blockedNodes: ['Dawn', 'Elysium', 'Fenix']` (every neighbor of Caelum):
 
 ```javascript
-const isolated = await fetch('/api/transmit', {
+isolated = await fetch('/api/transmit', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -232,6 +211,11 @@ const isolated = await fetch('/api/transmit', {
 
 console.log('Status:', isolated.packet.status);
 console.log('Reason:', isolated.packet.undeliverable_reason);
+```
+
+```
+// Aegis → Boreas (direct hop, no intermediaries needed)
+destination: 'Boreas'
 ```
 
 > "Kill every neighbor of Caelum and you get `undeliverable`. No route within Lmax — the system fails cleanly, not silently."
@@ -249,7 +233,7 @@ console.log('Reason:', isolated.packet.undeliverable_reason);
 **Action — True Cost Router.** `POST /api/route` with `{ origin_id, destination_id }`:
 
 ```javascript
-const trueCost = await fetch('/api/route', {
+trueCost = await fetch('/api/route', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -258,7 +242,7 @@ const trueCost = await fetch('/api/route', {
   })
 }).then(r => r.json());
 
-console.log('Chosen path:', trueCost.path?.join(' → '));
+console.log('Chosen path:', trueCost.chosen_path?.join(' → '));
 console.log('Explanation:', trueCost.explanation);
 
 trueCost.link_evaluations?.forEach(ev => {
@@ -283,13 +267,11 @@ const copilot = await fetch('/api/route', {
   })
 }).then(r => r.json());
 
-console.log('Parse source:', copilot.parse_source ?? '(check explanation)');
-console.log('Chosen path:', copilot.path?.join(' → '));
-console.log('Reroutes:', copilot.reroute_count ?? 0);
+console.log('Chosen path:', copilot.chosen_path?.join(' → '));
 console.log('Explanation:', copilot.explanation);
 ```
 
-> "Parser tries regex rules first — 'from X to Y' patterns — falls back to an LLM call if it can't extract origin and destination. `parse_source` tells you which path ran."
+> "Parser tries regex rules first — 'from X to Y' patterns — falls back to an LLM call if it can't extract origin and destination. The explanation string tells you which path ran and how many reroutes occurred."
 
 **Action — anomaly handling.** Open `src/lib/chimera/link-evaluation.ts` → `detectLinkAnomaly()`:
 
@@ -312,7 +294,7 @@ Navigate to `http://localhost:3000` (or `/relic`):
 | **6.3 Latency Metrics** | Stacked bar chart of `fiber_ms` / `tower_ms` / `atmosphere_ms` / `void_ms`. Void dominates at 229 s; everything else is noise. | Block 3 latency breakdown |
 | **6.4 Chaos Mode** | UI toggle for `blockedNodes`; watch the Space Map redraw and the latency delta update live (+51 s when Dawn is blocked). No state to flush — every render is a fresh Dijkstra run. | Block 4 (node failure) |
 | **6.5 Link Evaluations Panel** | Renders `POST /api/route` (structured/True Cost) results — congestion, trust, targeting, combined cost per link. Trust < 0.5 flags spoofing (self-reported latency faster than physics allows). | Block 5 (True Cost Router) |
-| **6.6 Co-Pilot Natural Language** | Run a more ambiguous NL request; `explanation` field populates the Intelligence Summary panel; `parse_source` shows whether regex or LLM handled the parse. | Block 5 (Co-Pilot) |
+| **6.6 Co-Pilot Natural Language** | Run a more ambiguous NL request; `explanation` field populates the Intelligence Summary panel; the explanation string shows whether regex or LLM handled the parse. | Block 5 (Co-Pilot) |
 
 **6.6 snippet — paste in DevTools:**
 
@@ -324,8 +306,7 @@ const copilot = await fetch('/api/route', {
     request: 'send a message from Aegis to Caelum avoiding congested links'
   })
 }).then(r => r.json());
-console.log('parse_source:', copilot.parse_source);
-console.log('path:', copilot.path?.join(' → '));
+console.log('path:', copilot.chosen_path?.join(' → '));
 console.log('explanation:', copilot.explanation);
 ```
 

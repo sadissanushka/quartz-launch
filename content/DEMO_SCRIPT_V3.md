@@ -232,7 +232,7 @@ const trueCost = await fetch('/api/route', {
   })
 }).then(r => r.json());
 
-console.log('Chosen path:', trueCost.path?.join(' → '));
+console.log('Chosen path:', trueCost.chosen_path?.join(' → '));
 console.log('Explanation:', trueCost.explanation);
 
 trueCost.link_evaluations?.forEach(ev => {
@@ -257,13 +257,11 @@ const copilot = await fetch('/api/route', {
   })
 }).then(r => r.json());
 
-console.log('Parse source:', copilot.parse_source ?? '(check explanation)');
-console.log('Chosen path:', copilot.path?.join(' → '));
-console.log('Reroutes:', copilot.reroute_count ?? 0);
+console.log('Chosen path:', copilot.chosen_path?.join(' → '));
 console.log('Explanation:', copilot.explanation);
 ```
 
-> "Parser tries regex rules first — 'from X to Y' patterns — falls back to an LLM call if it can't extract origin and destination. `parse_source` tells you which path ran."
+> "Parser tries regex rules first — 'from X to Y' patterns — falls back to an LLM call if it can't extract origin and destination. The explanation string tells you which path ran."
 
 Open `src/lib/chimera/link-evaluation.ts`, show `detectLinkAnomaly()`:
 
@@ -343,8 +341,7 @@ const copilot = await fetch('/api/route', {
     request: 'send a message from Aegis to Caelum avoiding congested links'
   })
 }).then(r => r.json());
-console.log('parse_source:', copilot.parse_source);
-console.log('path:', copilot.path?.join(' → '));
+console.log('path:', copilot.chosen_path?.join(' → '));
 console.log('explanation:', copilot.explanation);
 ```
 
